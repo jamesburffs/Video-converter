@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=VidKonverter
+Comment=Convert video files with ffmpeg
+Exec=vidkonverter %f
+Icon=vidkonverter
+Terminal=false
+Categories=AudioVideo;Video;
