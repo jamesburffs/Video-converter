@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
 
 from . import icon_factory, probe
 from .crop_overlay import CropMaskItem
+from .theme import DIVIDER_COLOR
 from .trim_bar import MIN_GAP, TimecodeEdit, TrimRange, TrimScrubberSlider
 from .video_transport import VideoTransport
 
@@ -175,10 +176,12 @@ class TrimPanel(QWidget):
         timecode_divider = QFrame()
         timecode_divider.setFrameShape(QFrame.VLine)
         timecode_divider.setFrameShadow(QFrame.Plain)
+        timecode_divider.setStyleSheet(f"color: {DIVIDER_COLOR};")
 
         reset_divider = QFrame()
         reset_divider.setFrameShape(QFrame.VLine)
         reset_divider.setFrameShadow(QFrame.Plain)
+        reset_divider.setStyleSheet(f"color: {DIVIDER_COLOR};")
 
         # All the transport/trim controls, grouped together as one cluster
         # centered under the (now full-width) scrubber above: play, then

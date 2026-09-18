@@ -22,6 +22,7 @@ from ..batch_scan import BatchScanner
 from ..converter import ConversionRunner
 from ..ffmpeg_setup_dialog import FFmpegSetupDialog
 from ..progress_dialog import ConversionProgressDialog
+from ..theme import DIVIDER_COLOR
 from ..trim_panel import TrimPanel
 from .alpha_mixin import AlphaMixin
 from .audio_mixin import AudioMixin
@@ -240,8 +241,7 @@ class MainWindow(
         self.convert_button.setIcon(icon_factory.export_icon(QColor("#333333")))
         self.convert_button.setMinimumHeight(36)
         self.convert_button.setStyleSheet(
-            "QPushButton { background-color: #51A2DA; color: #333333;"
-            " border: none; border-radius: 6px; }"
+            "QPushButton { background-color: #51A2DA; color: #333333; }"
             "QPushButton:hover { background-color: #6BB0E0; }"
             "QPushButton:pressed { background-color: #3E86BD; }"
         )
@@ -310,6 +310,7 @@ class MainWindow(
         divider = QFrame()
         divider.setFrameShape(QFrame.VLine)
         divider.setFrameShadow(QFrame.Plain)
+        divider.setStyleSheet(f"color: {DIVIDER_COLOR};")
 
         sections = [
             ("File Info", "fileinfo.png"),
