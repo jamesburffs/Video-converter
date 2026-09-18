@@ -22,7 +22,7 @@ jobs:
             dist_path: dist/VidKonverter
           - os: macos-latest
             artifact: VidKonverter-macos
-            dist_path: dist/VidKonverter.app
+            dist_path: dist/VidKonverter-macos.zip
           - os: windows-latest
             artifact: VidKonverter-windows
             dist_path: dist/VidKonverter.exe
@@ -44,6 +44,17 @@ jobs:
       - name: Build
         run: python packaging/build.py
 
+      # PyInstaller's macOS output is a VidKonverter.app *bundle* - a
+      # directory, not a single file. actions/upload-artifact uploads a
+      # directory's contents rather than the directory itself, so without
+      # this the artifact would come out as a loose Contents/ folder with
+      # no .app wrapper for macOS to recognize as an application. Zipping
+      # it ourselves first, with VidKonverter.app as the zip's own
+      # top-level entry, keeps the bundle intact end to end.
+      - name: Zip the macOS app bundle
+        if: runner.os == 'macOS'
+        run: cd dist && zip -rq VidKonverter-macos.zip VidKonverter.app
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
@@ -61,12 +72,21 @@ jobs:
         with:
           path: dist-artifacts
 
-      - name: Zip each platform build
+      # Each artifact folder holds either one already-zipped file (macOS,
+      # zipped in the build job above to keep its .app bundle intact) or
+      # the raw single-file binary/exe (Linux/Windows) - either way, turn
+      # it into one <artifact-name>.zip release asset.
+      - name: Package each platform build for release
         run: |
           cd dist-artifacts
           for dir in */; do
             name="${dir%/}"
-            (cd "$name" && zip -rq "../${name}.zip" .)
+            existing_zip=$(find "$name" -maxdepth 1 -name '*.zip')
+            if [ -n "$existing_zip" ]; then
+              mv "$existing_zip" "${name}.zip"
+            else
+              (cd "$name" && zip -rq "../${name}.zip" .)
+            fi
           done
 
       - uses: softprops/action-gh-release@v2
