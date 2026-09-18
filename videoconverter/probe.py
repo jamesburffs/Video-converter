@@ -7,6 +7,8 @@ import subprocess
 from dataclasses import dataclass, field
 from typing import Optional
 
+from .external_env import external_process_env
+
 
 class ProbeError(RuntimeError):
     pass
@@ -144,7 +146,8 @@ def probe_file(path: str) -> MediaInfo:
     ]
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True, check=True, timeout=30
+            cmd, capture_output=True, text=True, check=True, timeout=30,
+            env=external_process_env(),
         )
     except subprocess.CalledProcessError as exc:
         raise ProbeError(f"ffprobe failed: {exc.stderr.strip()}") from exc
@@ -215,7 +218,10 @@ def extract_frame(
     cmd += ["-frames:v", "1", "-q:v", "3", "-f", "image2pipe", "-vcodec", "mjpeg", "-"]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, check=True, timeout=15)
+        result = subprocess.run(
+            cmd, capture_output=True, check=True, timeout=15,
+            env=external_process_env(),
+        )
     except subprocess.CalledProcessError as exc:
         message = exc.stderr.decode(errors="replace").strip()[-300:]
         raise ProbeError(f"ffmpeg failed to extract a preview frame: {message}") from exc

@@ -5,6 +5,8 @@ from typing import List, Optional
 
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal
 
+from .external_env import clean_qprocess_environment
+
 
 class ConversionRunner(QObject):
     progress = Signal(float)       # percent complete, 0-100
@@ -22,6 +24,7 @@ class ConversionRunner(QObject):
     def start(self, command: List[str]):
         self._cancelled = False
         self._process = QProcess(self)
+        self._process.setProcessEnvironment(clean_qprocess_environment())
         self._process.setProgram(command[0])
         self._process.setArguments(command[1:])
         self._process.readyReadStandardOutput.connect(self._on_stdout)

@@ -16,3 +16,6 @@ dist/
 # OS cruft
 .DS_Store
 Thumbs.db
+
+# Local Claude Code session state
+.claude/

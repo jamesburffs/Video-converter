@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 )
 
 from . import probe
+from .external_env import clean_qprocess_environment
 from .ffmpeg_installer import InstallPlan, detect_install_plan
 
 
@@ -77,6 +78,7 @@ class FFmpegSetupDialog(QDialog):
         self.status_label.setText("Installing…")
 
         self._process = QProcess(self)
+        self._process.setProcessEnvironment(clean_qprocess_environment())
         self._process.setProcessChannelMode(QProcess.MergedChannels)
         self._process.setProgram(self.plan.command[0])
         self._process.setArguments(self.plan.command[1:])
