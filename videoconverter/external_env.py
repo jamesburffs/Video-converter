@@ -18,6 +18,7 @@ https://pyinstaller.org/en/stable/runtime-information.html#ld-library-path-libpa
 from __future__ import annotations
 
 import os
+import sys
 
 from PySide6.QtCore import QProcessEnvironment
 
@@ -26,19 +27,30 @@ _LIB_PATH_VARS = ("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH")
 
 def external_process_env() -> dict:
     """A copy of the current environment with PyInstaller's library-path
-    injection undone (a no-op when not running frozen, or on Windows, since
-    neither var's "_ORIG" backup exists there) - pass as `env=` to
-    subprocess.run/Popen, or via QProcessEnvironment, whenever launching a
-    binary that isn't part of this app's own bundle."""
+    injection undone (a no-op when not running frozen, or on Windows) -
+    pass as `env=` to subprocess.run/Popen, or via QProcessEnvironment,
+    whenever launching a binary that isn't part of this app's own bundle.
+
+    PyInstaller's "_ORIG" backup only exists at all if the var had a value
+    *before* it was overridden - for the common case of a user who's never
+    set LD_LIBRARY_PATH themselves, there's nothing to back up, so no
+    backup key is created, even though the var absolutely is still set (to
+    the bootloader's extraction dir) for this frozen process. Gating the
+    restoration on "does a backup key exist" - rather than treating a
+    missing backup as "remove the var, there was nothing here before" per
+    PyInstaller's own documented recipe - left that extraction dir in
+    place for exactly this, the most common, case: confirmed via a real
+    crash report where ffprobe's system libcurl resolved the bundle's own
+    (older) libssl.so.3 instead of the system's."""
     env = dict(os.environ)
+    if not getattr(sys, "frozen", False):
+        return env
     for var in _LIB_PATH_VARS:
-        orig_key = f"{var}_ORIG"
-        if orig_key in env:
-            orig = env.pop(orig_key)
-            if orig:
-                env[var] = orig
-            else:
-                env.pop(var, None)
+        orig = env.pop(f"{var}_ORIG", None)
+        if orig:
+            env[var] = orig
+        else:
+            env.pop(var, None)
     return env
 
 
