@@ -59,6 +59,14 @@ ffmpeg/ffprobe are **not** bundled into the executable - this keeps the
 build small and avoids shipping stale codec binaries. Install them
 separately, or let the app help you on first run.
 
+> **Platform support:** only the Linux build is currently tested and
+> published as a release. Building for macOS/Windows works via the
+> commands above, but neither has had real testing yet, and the macOS
+> build in particular needed a couple of packaging-specific fixes before
+> it would even launch - expect rough edges. Contributions and forks
+> that get either platform properly working and tested are very
+> welcome.
+
 ### Linux: installing a desktop launcher
 
 After building, register the binary as a proper application (so it shows
