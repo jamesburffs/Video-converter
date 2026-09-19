@@ -63,3 +63,35 @@ def clean_qprocess_environment() -> QProcessEnvironment:
     for key, value in external_process_env().items():
         qenv.insert(key, value)
     return qenv
+
+
+_MACOS_HOMEBREW_BIN_DIRS = ("/opt/homebrew/bin", "/usr/local/bin")
+
+
+def ensure_macos_homebrew_on_path() -> None:
+    """Homebrew installs to /opt/homebrew/bin (Apple Silicon) or
+    /usr/local/bin (Intel Macs), and adds that to PATH via a line its own
+    installer puts in the user's shell profile (`eval "$(brew shellenv)"`)
+    - which only takes effect for processes launched *from* that shell.
+    An app launched by double-clicking it (or via Spotlight, the Dock,
+    etc.) is started by launchd instead, with its own minimal default
+    PATH that never goes through the user's shell startup at all - so
+    ffmpeg/ffprobe, and this app's own "Install FFmpeg" button (which
+    needs to find `brew` itself first), can be genuinely installed and
+    working fine from Terminal while this app still can't find either.
+
+    Patching PATH itself, once, here - rather than resolving each binary
+    individually at each call site - fixes every shutil.which()/
+    subprocess/QProcess call that follows, since they all inherit this
+    process's environment (or a copy of it - see external_process_env()
+    above) from this point on. Call once at startup, before any ffmpeg/
+    ffprobe/brew detection or invocation; a no-op on every other
+    platform."""
+    if sys.platform != "darwin":
+        return
+    existing = os.environ.get("PATH", "")
+    parts = existing.split(os.pathsep) if existing else []
+    for bin_dir in _MACOS_HOMEBREW_BIN_DIRS:
+        if os.path.isdir(bin_dir) and bin_dir not in parts:
+            parts.append(bin_dir)
+    os.environ["PATH"] = os.pathsep.join(parts)

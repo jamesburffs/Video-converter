@@ -59,13 +59,16 @@ ffmpeg/ffprobe are **not** bundled into the executable - this keeps the
 build small and avoids shipping stale codec binaries. Install them
 separately, or let the app help you on first run.
 
-> **Platform support:** only the Linux build is currently tested and
-> published as a release. Building for macOS/Windows works via the
-> commands above, but neither has had real testing yet, and the macOS
-> build in particular needed a couple of packaging-specific fixes before
-> it would even launch - expect rough edges. Contributions and forks
-> that get either platform properly working and tested are very
-> welcome.
+> **Platform support:** only the Linux build is currently published as a
+> release. macOS is actively being worked back in - the CI workflow
+> builds it again (as a downloadable Actions artifact, not yet a
+> published release asset) - but still needs real-world testing before
+> it's trusted enough to publish; ffmpeg/Homebrew detection in a
+> double-clicked .app in particular needed a fix (see
+> ensure_macos_homebrew_on_path() in external_env.py) that's only had
+> code-level, not hands-on-a-real-Mac, verification so far. Windows has
+> had no testing at all yet. Contributions and forks that get either
+> platform properly working and tested are very welcome.
 
 ### Linux: installing a desktop launcher
 
