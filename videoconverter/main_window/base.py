@@ -13,7 +13,7 @@ from PySide6.QtGui import QColor, QIcon, QPalette
 from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMainWindow,
     QMessageBox, QProxyStyle, QPushButton, QScrollArea, QStackedWidget,
-    QStyle, QSystemTrayIcon, QTabWidget, QVBoxLayout, QWidget,
+    QStyle, QStyleFactory, QSystemTrayIcon, QTabWidget, QVBoxLayout, QWidget,
 )
 
 from .. import batch, icon_factory, probe
@@ -51,20 +51,29 @@ class _AccentedTabStyle(QProxyStyle):
     default padding/sizing even for properties the rule never mentioned, so
     the selected tab ends up a visibly different size/shape from the
     (still natively-painted) unselected one. A QProxyStyle instead lets the
-    real style (Breeze, whatever) paint the tab exactly as it always does,
-    then draws one small rect on top - same geometry, same everything,
-    just a different accent color where the base style would normally put
-    its own."""
+    base style paint the tab exactly as it always does, then draws one
+    small rect on top - same geometry, same everything, just a different
+    accent color where the base style would normally put its own.
+
+    Explicitly given a fresh Fusion instance as its base style (see the
+    call site) rather than relying on QProxyStyle's no-base-style-given
+    fallback - that was tried first, on the (undocumented, and apparently
+    wrong on at least one platform/Qt version combination) assumption that
+    it would dynamically resolve to whatever QApplication.setStyle() had
+    already selected. It didn't: macOS rendered this tab bar with its own
+    native pill-shaped tab look regardless of the app-wide Fusion style,
+    while every other widget correctly used Fusion - passing Fusion in
+    explicitly removes the ambiguity entirely rather than depending on
+    exactly how that fallback resolves on a given platform."""
 
     ACCENT_HEIGHT = 3
 
-    def __init__(self, accent: QColor):
-        # No base style passed in: QProxyStyle takes ownership of (and will
-        # delete) whatever style object it's given, so handing it the
-        # live, shared application style here would be a double-free
-        # waiting to happen. The no-argument form instead defers to
-        # QApplication's current style dynamically, without owning it.
-        super().__init__()
+    def __init__(self, base_style: QStyle, accent: QColor):
+        # QProxyStyle takes ownership of (and will delete) whatever style
+        # object it's given - so this needs to be a style instance created
+        # fresh for it, never the live, shared QApplication style (handing
+        # it that would be a double-free waiting to happen).
+        super().__init__(base_style)
         self._accent = accent
 
     def drawControl(self, element, option, painter, widget=None):
@@ -223,8 +232,10 @@ class MainWindow(
         self.mode_tabs.addTab(self.batch_tab, "Batch Folder")
         # See _AccentedTabStyle - recolors just the active-tab accent line
         # via a QProxyStyle rather than a stylesheet, so tab padding/shape
-        # stays whatever the real (Breeze) style already draws.
-        self._tab_accent_style = _AccentedTabStyle(QColor("#51A2DA"))
+        # stays whatever the base style already draws.
+        self._tab_accent_style = _AccentedTabStyle(
+            QStyleFactory.create("Fusion"), QColor("#51A2DA")
+        )
         self.mode_tabs.tabBar().setStyle(self._tab_accent_style)
         layout.addWidget(self.mode_tabs)
 
