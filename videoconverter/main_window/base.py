@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 
 from PySide6.QtCore import Qt, QRect, QSize, QTimer
-from PySide6.QtGui import QColor, QIcon, QPalette
+from PySide6.QtGui import QColor, QIcon, QPainter, QPalette
 from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMainWindow,
     QMessageBox, QProxyStyle, QPushButton, QScrollArea, QStackedWidget,
@@ -67,6 +67,7 @@ class _AccentedTabStyle(QProxyStyle):
     exactly how that fallback resolves on a given platform."""
 
     ACCENT_HEIGHT = 3
+    ACCENT_RADIUS = 4
 
     def __init__(self, base_style: QStyle, accent: QColor):
         # QProxyStyle takes ownership of (and will delete) whatever style
@@ -83,10 +84,26 @@ class _AccentedTabStyle(QProxyStyle):
             and option.state & QStyle.StateFlag.State_Selected
         ):
             painter.save()
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
             painter.setPen(Qt.NoPen)
             painter.setBrush(self._accent)
-            painter.drawRect(
-                option.rect.x(), option.rect.y(), option.rect.width(), self.ACCENT_HEIGHT
+            # The base style draws the tab itself with rounded top
+            # corners - a flat-cornered rect on top of that read as
+            # visibly "stuck on" rather than integrated. Drawing a
+            # rounded rect tall enough to include the corner radius, then
+            # clipping to just the accent bar's own height, keeps only
+            # its rounded top visible - matching the tab shape
+            # underneath instead of cutting across it.
+            painter.setClipRect(
+                option.rect.x(), option.rect.y(),
+                option.rect.width(), self.ACCENT_HEIGHT,
+            )
+            painter.drawRoundedRect(
+                QRect(
+                    option.rect.x(), option.rect.y(),
+                    option.rect.width(), self.ACCENT_HEIGHT + self.ACCENT_RADIUS,
+                ),
+                self.ACCENT_RADIUS, self.ACCENT_RADIUS,
             )
             painter.restore()
 
