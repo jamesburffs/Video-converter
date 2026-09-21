@@ -136,5 +136,6 @@ def restart_application() -> bool:
     proc.setProgram(sys.executable)
     proc.setArguments(args)
     proc.setProcessEnvironment(env)
-    started, _pid = proc.startDetached()
-    return started
+    # PySide6 returns a bare bool for the instance form (the (bool, pid)
+    # tuple is only for the static overload).
+    return bool(proc.startDetached())
