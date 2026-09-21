@@ -19,6 +19,11 @@ QUEUE_COLUMNS = [
 ]
 
 
+def _video_file_filter() -> str:
+    patterns = " ".join(f"*{ext}" for ext in sorted(batch.VIDEO_EXTENSIONS))
+    return f"Video files ({patterns});;All files (*)"
+
+
 class SourceMixin:
     def _build_single_source_tab(self) -> QWidget:
         tab = QWidget()
@@ -189,7 +194,7 @@ class SourceMixin:
     # ------------------------------------------------------------------
     def _on_select_file(self):
         path, _ = QFileDialog.getOpenFileName(
-            self, "Select video file", "", "Video files (*.*)",
+            self, "Select video file", "", _video_file_filter(),
             options=QFileDialog.Option.DontUseNativeDialog,
         )
         if not path:

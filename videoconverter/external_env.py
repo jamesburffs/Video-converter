@@ -95,3 +95,46 @@ def ensure_macos_homebrew_on_path() -> None:
         if os.path.isdir(bin_dir) and bin_dir not in parts:
             parts.append(bin_dir)
     os.environ["PATH"] = os.pathsep.join(parts)
+
+
+def _windows_registry_path() -> str:
+    """The current machine + user PATH as stored in the registry - unlike
+    this process's own environment, this reflects installs made since the
+    app started."""
+    import winreg
+    parts = []
+    for hive, subkey in (
+        (winreg.HKEY_LOCAL_MACHINE,
+         r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"),
+        (winreg.HKEY_CURRENT_USER, "Environment"),
+    ):
+        try:
+            with winreg.OpenKey(hive, subkey) as key:
+                value, _ = winreg.QueryValueEx(key, "Path")
+                parts.append(os.path.expandvars(value))
+        except OSError:
+            pass
+    return ";".join(p for p in parts if p)
+
+
+def restart_application() -> bool:
+    """Launch a fresh copy of this app, detached, so it picks up a PATH
+    changed since startup. The caller should quit afterwards."""
+    from PySide6.QtCore import QProcess
+
+    env = QProcessEnvironment.systemEnvironment()
+    if sys.platform == "win32":
+        fresh = _windows_registry_path()
+        if fresh:
+            env.insert("PATH", fresh)
+    # A one-file PyInstaller child must extract its own bundle rather than
+    # reuse the parent's temp dir, which vanishes when the parent exits.
+    env.insert("PYINSTALLER_RESET_ENVIRONMENT", "1")
+
+    args = sys.argv[1:] if getattr(sys, "frozen", False) else sys.argv
+    proc = QProcess()
+    proc.setProgram(sys.executable)
+    proc.setArguments(args)
+    proc.setProcessEnvironment(env)
+    started, _pid = proc.startDetached()
+    return started

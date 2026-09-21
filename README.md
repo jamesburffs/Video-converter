@@ -88,9 +88,11 @@ The simplest route is `winget`, which is built into Windows 10 (version
    ```
 
    Accept the source agreement if asked.
-3. **Close and reopen the terminal, and restart VidKonverter.** Windows
-   only gives programs the updated PATH when they start, so a
-   VidKonverter window that was already open won't see the new install.
+3. **Restart VidKonverter.** Windows only gives programs the updated PATH
+   when they start, so a VidKonverter window that was already open won't
+   see the new install. (If you install through the app's FFmpeg Setup
+   dialog, it offers to restart for you.) Close and reopen your terminal
+   too before running `ffmpeg -version`.
 4. **Check it worked** in the new terminal - this should print a version
    number:
 
@@ -141,6 +143,20 @@ download quarantine flag in Terminal:
 ```bash
 xattr -dr com.apple.quarantine /path/to/VidKonverter.app
 ```
+
+## Windows: opening the app for the first time
+
+The Windows build isn't code-signed (certificates cost money), so
+SmartScreen may show "Windows protected your PC" the first time you run
+it. The app is open source and you can read exactly what it does in this
+repository - to run it anyway:
+
+1. Click **More info** (the "Learn more" link on some versions).
+2. Click **Run anyway**.
+
+Windows remembers your choice, so later launches work normally. If the
+downloaded zip is blocked, you can also right-click the extracted
+`VidKonverter.exe`, choose **Properties**, tick **Unblock** and click OK.
 
 ## Requirements
 

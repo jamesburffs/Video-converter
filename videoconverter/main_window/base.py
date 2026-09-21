@@ -11,7 +11,7 @@ import os
 from PySide6.QtCore import Qt, QRect, QSize, QTimer
 from PySide6.QtGui import QColor, QIcon, QPainter, QPalette
 from PySide6.QtWidgets import (
-    QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMainWindow,
+    QApplication, QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMainWindow,
     QMessageBox, QProxyStyle, QPushButton, QScrollArea, QStackedWidget,
     QStyle, QStyleFactory, QSystemTrayIcon, QTabWidget, QVBoxLayout, QWidget,
 )
@@ -20,6 +20,7 @@ from .. import batch, icon_factory, probe
 from ..about_dialog import AboutDialog
 from ..batch_scan import BatchScanner
 from ..converter import ConversionRunner
+from ..external_env import restart_application
 from ..ffmpeg_setup_dialog import FFmpegSetupDialog
 from ..progress_dialog import ConversionProgressDialog
 from ..theme import DIVIDER_COLOR
@@ -456,6 +457,9 @@ class MainWindow(
     def _show_ffmpeg_setup_dialog(self):
         dialog = FFmpegSetupDialog(self)
         dialog.exec()
+        if dialog.restart_requested and restart_application():
+            QApplication.quit()
+            return
         if probe.ffmpeg_available() and probe.ffprobe_available():
             self.select_file_button.setEnabled(True)
             self.select_folder_button.setEnabled(True)

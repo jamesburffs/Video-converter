@@ -1,10 +1,13 @@
 """Dialog that offers to install ffmpeg when it's missing from PATH."""
 from __future__ import annotations
 
+import sys
+
 from PySide6.QtCore import QProcess, QUrl
 from PySide6.QtGui import QDesktopServices, QFont
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QPlainTextEdit,
+    QMessageBox,
 )
 
 from . import probe
@@ -18,6 +21,7 @@ class FFmpegSetupDialog(QDialog):
         self.setWindowTitle("FFmpeg Setup")
         self.resize(560, 320)
         self._process: QProcess | None = None
+        self.restart_requested = False
         self.plan: InstallPlan = detect_install_plan()
 
         layout = QVBoxLayout(self)
@@ -101,6 +105,21 @@ class FFmpegSetupDialog(QDialog):
         if found:
             self.status_label.setText("ffmpeg is now available. You're all set.")
             self.install_button.setVisible(False)
+        elif exit_code == 0 and sys.platform == "win32":
+            # This process's PATH was fixed at launch, so it can't see the
+            # new install until the app restarts.
+            self.status_label.setText(
+                "ffmpeg was installed. VidKonverter needs to restart to "
+                "detect it."
+            )
+            answer = QMessageBox.question(
+                self, "Restart VidKonverter?",
+                "ffmpeg was installed successfully, but VidKonverter needs "
+                "to restart before it can find it.\n\nRestart now?",
+            )
+            if answer == QMessageBox.StandardButton.Yes:
+                self.restart_requested = True
+                self.accept()
         else:
             self.status_label.setText(
                 f"Install command exited with code {exit_code}, and ffmpeg still "
