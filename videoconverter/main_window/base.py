@@ -11,7 +11,7 @@ import os
 from PySide6.QtCore import Qt, QRect, QSize, QTimer
 from PySide6.QtGui import QColor, QIcon, QPainter, QPalette
 from PySide6.QtWidgets import (
-    QApplication, QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMainWindow,
+    QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QMainWindow,
     QMessageBox, QProxyStyle, QPushButton, QScrollArea, QStackedWidget,
     QStyle, QStyleFactory, QSystemTrayIcon, QTabWidget, QVBoxLayout, QWidget,
 )
@@ -458,8 +458,10 @@ class MainWindow(
         dialog = FFmpegSetupDialog(self)
         dialog.exec()
         if dialog.restart_requested and restart_application():
-            QApplication.quit()
-            return
+            # Not QApplication.quit(): on the startup path this runs from
+            # __init__, before app.exec() has started, where quit() is a
+            # no-op and the old instance would keep running.
+            os._exit(0)
         if probe.ffmpeg_available() and probe.ffprobe_available():
             self.select_file_button.setEnabled(True)
             self.select_folder_button.setEnabled(True)
