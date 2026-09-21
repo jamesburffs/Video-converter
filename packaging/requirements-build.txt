@@ -1,1 +1,3 @@
 pyinstaller>=6.0
+# Lets PyInstaller convert the PNG app icon to a .ico for the Windows .exe.
+pillow>=10.0

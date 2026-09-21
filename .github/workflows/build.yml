@@ -12,12 +12,9 @@ permissions:
   contents: write
 
 jobs:
-  # Windows still needs more testing/work before it's worth building at
-  # all (see the README's platform-support note). macOS builds again as
-  # of the ensure_macos_homebrew_on_path() fix (see external_env.py) for
-  # ffmpeg/Homebrew detection in a double-clicked .app - but isn't wired
-  # into the release job below yet, pending real testing on a real Mac.
-  # Flip that on once confirmed working.
+  # macOS and Windows build as workflow artifacts only for now - neither
+  # is wired into the release job below. Flip that on per platform once
+  # it's confirmed working on real hardware.
   build-linux:
     runs-on: ubuntu-latest
     steps:
@@ -89,6 +86,28 @@ jobs:
         with:
           name: macos-build
           path: dist/VidKonverter-macos.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r packaging/requirements-build.txt
+
+      - name: Build standalone executable
+        run: python packaging/build.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: dist/VidKonverter.exe
 
   # Only runs for an actual version tag push (not a manual workflow_dispatch
   # against a branch) - publishes build-linux's outputs as assets on a

@@ -51,6 +51,13 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    # Windows only (ignored elsewhere): the .exe's own icon in Explorer,
+    # the taskbar and shortcuts. PyInstaller converts the PNG to .ico
+    # itself when Pillow is installed (see requirements-build.txt).
+    icon=(
+        os.path.join(icons_dir, "vidkonverter-app-icon.png")
+        if sys.platform == "win32" else None
+    ),
 )
 
 if sys.platform == "darwin":
