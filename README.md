@@ -26,12 +26,129 @@ ffmpeg. Built with PySide6 (Qt for Python).
   (via the system package manager on Linux, Homebrew on macOS, or a link
   to the official Windows build) if not.
 
+## Installing ffmpeg
+
+VidKonverter doesn't bundle ffmpeg - it needs `ffmpeg` and `ffprobe`
+installed on your computer. Both come in the same package. The steps
+below are for a first-time install; if you already have ffmpeg, you can
+skip this section.
+
+### macOS
+
+The easiest route is [Homebrew](https://brew.sh), a package manager for
+macOS.
+
+1. **Open Terminal** (press Cmd+Space, type "Terminal", press Enter).
+2. **Install Homebrew** by pasting the command from the front page of
+   [brew.sh](https://brew.sh) and pressing Enter. It asks for your Mac
+   password (nothing shows as you type - that's normal) and may offer to
+   install Apple's Command Line Tools first; say yes. This can take a
+   few minutes.
+3. **Add Homebrew to your PATH.** When the installer finishes it prints a
+   "Next steps" section - don't skip it. On an Apple Silicon Mac (M1 or
+   later) it looks like this; run both lines:
+
+   ```bash
+   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+   eval "$(/opt/homebrew/bin/brew shellenv)"
+   ```
+
+   On an Intel Mac the path is `/usr/local/bin/brew` instead of
+   `/opt/homebrew/bin/brew`. If you're unsure, copy the exact lines the
+   installer printed. Without this step, Terminal won't recognise the
+   `brew` command.
+4. **Install ffmpeg:**
+
+   ```bash
+   brew install ffmpeg
+   ```
+
+   This downloads a fair amount of software and can take several minutes.
+5. **Check it worked** - this should print a version number:
+
+   ```bash
+   ffmpeg -version
+   ```
+
+Then (re)start VidKonverter. It looks for ffmpeg in Homebrew's standard
+locations itself, so it finds it even when launched by double-clicking
+rather than from Terminal.
+
+### Windows
+
+The simplest route is `winget`, which is built into Windows 10 (version
+1809 or later) and Windows 11.
+
+1. **Open a terminal** - right-click the Start button and choose
+   "Terminal" or "Windows PowerShell".
+2. **Install ffmpeg:**
+
+   ```powershell
+   winget install -e --id Gyan.FFmpeg
+   ```
+
+   Accept the source agreement if asked.
+3. **Close and reopen the terminal, and restart VidKonverter.** Windows
+   only gives programs the updated PATH when they start, so a
+   VidKonverter window that was already open won't see the new install.
+4. **Check it worked** in the new terminal - this should print a version
+   number:
+
+   ```powershell
+   ffmpeg -version
+   ```
+
+**If `winget` isn't available**, install manually:
+
+1. Download a "release essentials" build from
+   [gyan.dev/ffmpeg/builds](https://www.gyan.dev/ffmpeg/builds/) and
+   extract the zip somewhere permanent, e.g. `C:\ffmpeg` (so that
+   `C:\ffmpeg\bin\ffmpeg.exe` exists).
+2. Add its `bin` folder to your PATH: press the Windows key, search for
+   "Edit the system environment variables", click **Environment
+   Variables...**, select `Path` under "User variables", click **Edit...**
+   then **New**, and enter `C:\ffmpeg\bin`. Click OK on each window.
+3. Open a new terminal, run `ffmpeg -version` to check, and restart
+   VidKonverter.
+
+### Linux
+
+Install `ffmpeg` with your distribution's package manager, e.g.
+`sudo apt install ffmpeg` (Debian/Ubuntu), `sudo dnf install ffmpeg`
+(Fedora - may need the RPM Fusion repository enabled), or
+`sudo pacman -S ffmpeg` (Arch). The `.deb` and `.rpm` packages list
+ffmpeg as a recommended dependency.
+
+## macOS: opening the app for the first time
+
+The macOS build isn't signed with a paid Apple Developer ID or notarized
+by Apple (that costs $99 a year), so the first time you open it macOS
+will say it can't verify the app is free of malware. The app is open
+source and you can read exactly what it does in this repository - to
+open it anyway, use either of these once:
+
+- **Right-click (or Control-click) `VidKonverter.app` and choose Open**,
+  then click **Open** in the dialog. A plain double-click won't offer
+  that button the first time, but this route does.
+- Or double-click it, dismiss the warning, then go to **System Settings →
+  Privacy & Security**, scroll down to the message about VidKonverter,
+  and click **Open Anyway**.
+
+macOS remembers your choice, so later launches work normally. If you
+downloaded the zip and the app is still blocked, you can also clear the
+download quarantine flag in Terminal:
+
+```bash
+xattr -dr com.apple.quarantine /path/to/VidKonverter.app
+```
+
 ## Requirements
 
 - Python 3.10+
-- [ffmpeg and ffprobe](https://ffmpeg.org/) on your `PATH` - the app will
-  offer to help install these on first run if they're missing (Help →
-  FFmpeg Setup…).
+- [ffmpeg and ffprobe](https://ffmpeg.org/) - see
+  [Installing ffmpeg](#installing-ffmpeg) above. The app will also offer
+  to help install them on first run if they're missing (Help → FFmpeg
+  Setup…).
 
 ## Running from source
 
@@ -59,16 +176,12 @@ ffmpeg/ffprobe are **not** bundled into the executable - this keeps the
 build small and avoids shipping stale codec binaries. Install them
 separately, or let the app help you on first run.
 
-> **Platform support:** only the Linux build is currently published as a
-> release. macOS is actively being worked back in - the CI workflow
-> builds it again (as a downloadable Actions artifact, not yet a
-> published release asset) - but still needs real-world testing before
-> it's trusted enough to publish; ffmpeg/Homebrew detection in a
-> double-clicked .app in particular needed a fix (see
-> ensure_macos_homebrew_on_path() in external_env.py) that's only had
-> code-level, not hands-on-a-real-Mac, verification so far. Windows has
-> had no testing at all yet. Contributions and forks that get either
-> platform properly working and tested are very welcome.
+> **Platform support:** Linux is the only platform published as a
+> release. The macOS build has been tested on a real Mac and works; CI
+> builds it as a downloadable Actions artifact rather than a release
+> asset for now. The Windows build is produced the same way but has had
+> no testing yet. Contributions and forks that help either platform
+> along are very welcome.
 
 ### Linux: installing a desktop launcher
 
