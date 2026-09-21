@@ -176,12 +176,10 @@ ffmpeg/ffprobe are **not** bundled into the executable - this keeps the
 build small and avoids shipping stale codec binaries. Install them
 separately, or let the app help you on first run.
 
-> **Platform support:** Linux is the only platform published as a
-> release. The macOS build has been tested on a real Mac and works; CI
-> builds it as a downloadable Actions artifact rather than a release
-> asset for now. The Windows build is produced the same way but has had
-> no testing yet. Contributions and forks that help either platform
-> along are very welcome.
+> **Platform support:** Linux and macOS builds are published with each
+> release and have been tested on real hardware. The Windows build is
+> published too but has had no testing yet - expect rough edges.
+> Contributions and forks that help any platform along are very welcome.
 
 ### Linux: installing a desktop launcher
 
